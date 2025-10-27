@@ -18,10 +18,7 @@ export const Tasks = ({ todolist }: Props) => {
 
   const [page, setPage] = useState(1)
 
-  const { data, isLoading } = useGetTasksQuery({
-    todolistId: id,
-    params: { page },
-  })
+  const { data, isLoading } = useGetTasksQuery({ todolistId: id, params: { page } })
 
   let filteredTasks = data?.items
   if (filter === "active") {

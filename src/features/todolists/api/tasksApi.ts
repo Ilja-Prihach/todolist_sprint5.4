@@ -6,7 +6,7 @@ import { PAGE_SIZE } from "@/common/constants"
 
 export const tasksApi = baseApi.injectEndpoints({
   endpoints: (build) => ({
-    getTasks: build.query<GetTasksResponse, { todolistId: string; params: { count: number; page: number } }>({
+    getTasks: build.query<GetTasksResponse, { todolistId: string; params: { page: number } }>({
       query: ({ todolistId, params }) => ({
         url: `todo-lists/${todolistId}/tasks`,
         params: { ...params, count: PAGE_SIZE },
@@ -37,6 +37,34 @@ export const tasksApi = baseApi.injectEndpoints({
         method: "PUT",
         body: model,
       }),
+      async onQueryStarted({ todolistId, taskId, model }, { dispatch, queryFulfilled, getState }) {
+        const cachedArgsForQuery = tasksApi.util.selectCachedArgsForQuery(getState(), 'getTasks')
+
+        let patchResults: any[] = []
+        cachedArgsForQuery.forEach(({ params }) => {
+          patchResults.push(
+            dispatch(
+              tasksApi.util.updateQueryData(
+                'getTasks',
+                { todolistId, params: { page: params.page } },
+                state => {
+                  const index = state.items.findIndex(task => task.id === taskId)
+                  if (index !== -1) {
+                    state.items[index] = { ...state.items[index], ...model }
+                  }
+                }
+              )
+            )
+          )
+        })
+        try {
+          await queryFulfilled
+        } catch {
+          patchResults.forEach(patchResult => {
+            patchResult.undo()
+          })
+        }
+      },
       invalidatesTags: (_res, _err, { todolistId }) => [{ type: "Task", id: todolistId }],
     }),
   }),
