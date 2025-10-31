@@ -27,11 +27,12 @@ export const Login = () => {
 
   const theme = getTheme(themeMode)
 
-  //
-  // const [captchaUrl, setCaptchaUrl] = useState<string | null>(null)
-  // const [captchaValue, setCaptchaValue] = useState("")
-  // const { refetch: fetchCaptcha } = useCaptchaQuery(undefined, { skip: true })
-  // const [captchaError, setCaptchaError] = useState<string | null>(null)
+
+  const [captchaValue, setCaptchaValue] = useState("")
+  const [captchaError, setCaptchaError] = useState<string | null>(null)
+
+  // Загружаем капчу сразу при монтировании компонента
+  const { data: captchaData, refetch: fetchCaptcha } = useCaptchaQuery()
 
 
   const {
@@ -45,39 +46,38 @@ export const Login = () => {
     defaultValues: { email: "", password: "", rememberMe: false },
   })
 
-  const onSubmit: SubmitHandler<LoginInputs> = (data) => {
-    login(data).then((res) => {
-      if (res.data?.resultCode === ResultCode.Success) {
-        dispatch(setIsLoggedInAC({ isLoggedIn: true }))
-        localStorage.setItem(AUTH_TOKEN, res.data.data.token)
-        reset()
-      }
+  // const onSubmit: SubmitHandler<LoginInputs> = (data) => {
+  //   login(data).then((res) => {
+  //     if (res.data?.resultCode === ResultCode.Success) {
+  //       dispatch(setIsLoggedInAC({ isLoggedIn: true }))
+  //       localStorage.setItem(AUTH_TOKEN, res.data.data.token)
+  //       reset()
+  //     }
+  //   })
+  // }
+
+  const onSubmit: SubmitHandler<LoginInputs> = async (data) => {
+    const res = await login({
+      ...data,
+      captcha: captchaData ? captchaValue : undefined
     })
+
+    if (res.data?.resultCode === ResultCode.Success) {
+      dispatch(setIsLoggedInAC({ isLoggedIn: true }))
+      localStorage.setItem(AUTH_TOKEN, res.data.data.token)
+      reset()
+      setCaptchaValue("")
+      setCaptchaError(null)
+    } else if (res.data?.resultCode === ResultCode.CaptchaError) {
+      const message = res.data?.messages?.[0]
+
+      if (message?.toLowerCase().includes("incorrect")) {
+        setCaptchaError(message)
+        fetchCaptcha()
+      }
+    }
   }
 
-  // const onSubmit: SubmitHandler<LoginInputs> = async (data) => {
-  //   const res = await login({ ...data, captcha: captchaValue })
-  //
-  //   if (res.data?.resultCode === ResultCode.Success) {
-  //     dispatch(setIsLoggedInAC({ isLoggedIn: true }))
-  //     localStorage.setItem(AUTH_TOKEN, res.data.data.token)
-  //     reset()
-  //     setCaptchaUrl(null)
-  //   } else if (res.data?.resultCode === ResultCode.CaptchaError) {
-  //     // Проверяем, есть ли сообщение "Incorrect anti-bot symbols"
-  //     const message = res.data?.messages?.[0]
-  //
-  //     if (message?.toLowerCase().includes("incorrect")) {
-  //       // ❌ Пользователь ввёл неверную капчу — не убираем картинку, просто показываем ошибку
-  //       setCaptchaError(message)
-  //     } else {
-  //       // ✅ Капча требуется впервые — загружаем новую
-  //       const newCaptcha = await fetchCaptcha().unwrap()
-  //       setCaptchaUrl(newCaptcha.url)
-  //       setCaptchaError(null)
-  //     }
-  //   }
-  // }
 
   return (
     <Grid container justifyContent={"center"}>
@@ -125,19 +125,24 @@ export const Login = () => {
               }
             />
 
-            {/*{captchaUrl && (*/}
-            {/*  <>*/}
-            {/*    <img src={captchaUrl} alt="captcha" style={{ marginTop: "10px", width: "150px" }} />*/}
-            {/*    <TextField*/}
-            {/*      label="Captcha"*/}
-            {/*      margin="normal"*/}
-            {/*      value={captchaValue}*/}
-            {/*      onChange={(e) => setCaptchaValue(e.target.value)}*/}
-            {/*      error={!!captchaError}*/}
-            {/*      helperText={captchaError || ""}*/}
-            {/*    />*/}
-            {/*  </>*/}
-            {/*)}*/}
+            {captchaData?.url && (
+              <>
+                <img
+                  src={captchaData.url}
+                  alt="captcha"
+                  style={{ marginTop: "10px", width: "150px" }}
+                />
+                <TextField
+                  label="Captcha"
+                  margin="normal"
+                  value={captchaValue}
+                  onChange={(e) => setCaptchaValue(e.target.value)}
+                  error={!!captchaError}
+                  helperText={captchaError || ""}
+                  required
+                />
+              </>
+            )}
 
             <Button type="submit" variant="contained" color="primary">
               Login
