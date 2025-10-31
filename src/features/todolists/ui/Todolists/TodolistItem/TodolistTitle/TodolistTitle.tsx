@@ -1,8 +1,8 @@
 import { EditableSpan } from "@/common/components"
-import { useAppDispatch } from "@/common/hooks"
-import type { RequestStatus } from "@/common/types"
+// import { useAppDispatch } from "@/common/hooks"
+// import type { RequestStatus } from "@/common/types"
 import {
-  todolistsApi,
+  //todolistsApi,
   useRemoveTodolistMutation,
   useUpdateTodolistTitleMutation,
 } from "@/features/todolists/api/todolistsApi"
@@ -21,31 +21,22 @@ export const TodolistTitle = ({ todolist }: Props) => {
   const [removeTodolist] = useRemoveTodolistMutation()
   const [updateTodolistTitle] = useUpdateTodolistTitleMutation()
 
-  const dispatch = useAppDispatch()
+ // const dispatch = useAppDispatch()
 
-  const changeTodolistStatus = (entityStatus: RequestStatus) => {
-    dispatch(
-      todolistsApi.util.updateQueryData("getTodolists", undefined, (state) => {
-        const todolist = state.find((todolist) => todolist.id === id)
-        if (todolist) {
-          todolist.entityStatus = entityStatus
-        }
-      }),
-    )
-  }
+  // const changeTodolistStatus = (entityStatus: RequestStatus) => {
+  //   dispatch(
+  //     todolistsApi.util.updateQueryData("getTodolists", undefined, (state) => {
+  //       const todolist = state.find((todolist) => todolist.id === id)
+  //       if (todolist) {
+  //         todolist.entityStatus = entityStatus
+  //       }
+  //     }),
+  //   )
+  // }
 
-  const deleteTodolist = () => {
-    changeTodolistStatus("loading")
-    removeTodolist(id)
-      .unwrap()
-      .catch(() => {
-        changeTodolistStatus("idle")
-      })
-  }
+  const deleteTodolist = () => removeTodolist(id)
 
-  const changeTodolistTitle = (title: string) => {
-    updateTodolistTitle({ id, title })
-  }
+  const changeTodolistTitle = (title: string) => updateTodolistTitle({ id, title })
 
   return (
     <div className={styles.container}>

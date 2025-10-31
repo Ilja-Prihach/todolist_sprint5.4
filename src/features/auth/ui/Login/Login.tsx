@@ -3,7 +3,7 @@ import { AUTH_TOKEN } from "@/common/constants"
 import { ResultCode } from "@/common/enums"
 import { useAppDispatch, useAppSelector } from "@/common/hooks"
 import { getTheme } from "@/common/theme"
-import { useLoginMutation } from "@/features/auth/api/authApi"
+import { useCaptchaQuery, useLoginMutation } from "@/features/auth/api/authApi"
 import { type LoginInputs, loginSchema } from "@/features/auth/lib/schemas"
 import { zodResolver } from "@hookform/resolvers/zod"
 import Button from "@mui/material/Button"
@@ -16,6 +16,7 @@ import Grid from "@mui/material/Grid"
 import TextField from "@mui/material/TextField"
 import { Controller, type SubmitHandler, useForm } from "react-hook-form"
 import styles from "./Login.module.css"
+import { useState } from "react"
 
 export const Login = () => {
   const themeMode = useAppSelector(selectThemeMode)
@@ -25,6 +26,13 @@ export const Login = () => {
   const dispatch = useAppDispatch()
 
   const theme = getTheme(themeMode)
+
+  //
+  // const [captchaUrl, setCaptchaUrl] = useState<string | null>(null)
+  // const [captchaValue, setCaptchaValue] = useState("")
+  // const { refetch: fetchCaptcha } = useCaptchaQuery(undefined, { skip: true })
+  // const [captchaError, setCaptchaError] = useState<string | null>(null)
+
 
   const {
     register,
@@ -46,6 +54,30 @@ export const Login = () => {
       }
     })
   }
+
+  // const onSubmit: SubmitHandler<LoginInputs> = async (data) => {
+  //   const res = await login({ ...data, captcha: captchaValue })
+  //
+  //   if (res.data?.resultCode === ResultCode.Success) {
+  //     dispatch(setIsLoggedInAC({ isLoggedIn: true }))
+  //     localStorage.setItem(AUTH_TOKEN, res.data.data.token)
+  //     reset()
+  //     setCaptchaUrl(null)
+  //   } else if (res.data?.resultCode === ResultCode.CaptchaError) {
+  //     // Проверяем, есть ли сообщение "Incorrect anti-bot symbols"
+  //     const message = res.data?.messages?.[0]
+  //
+  //     if (message?.toLowerCase().includes("incorrect")) {
+  //       // ❌ Пользователь ввёл неверную капчу — не убираем картинку, просто показываем ошибку
+  //       setCaptchaError(message)
+  //     } else {
+  //       // ✅ Капча требуется впервые — загружаем новую
+  //       const newCaptcha = await fetchCaptcha().unwrap()
+  //       setCaptchaUrl(newCaptcha.url)
+  //       setCaptchaError(null)
+  //     }
+  //   }
+  // }
 
   return (
     <Grid container justifyContent={"center"}>
@@ -92,6 +124,21 @@ export const Login = () => {
                 />
               }
             />
+
+            {/*{captchaUrl && (*/}
+            {/*  <>*/}
+            {/*    <img src={captchaUrl} alt="captcha" style={{ marginTop: "10px", width: "150px" }} />*/}
+            {/*    <TextField*/}
+            {/*      label="Captcha"*/}
+            {/*      margin="normal"*/}
+            {/*      value={captchaValue}*/}
+            {/*      onChange={(e) => setCaptchaValue(e.target.value)}*/}
+            {/*      error={!!captchaError}*/}
+            {/*      helperText={captchaError || ""}*/}
+            {/*    />*/}
+            {/*  </>*/}
+            {/*)}*/}
+
             <Button type="submit" variant="contained" color="primary">
               Login
             </Button>
